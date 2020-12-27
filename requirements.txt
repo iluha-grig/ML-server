@@ -1,0 +1,10 @@
+Flask
+Flask-Bootstrap
+Flask-WTF
+WTForms
+pandas
+regex
+sklearn
+matplotlib
+numpy
+scipy
