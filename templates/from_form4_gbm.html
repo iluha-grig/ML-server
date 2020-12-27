@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+      h1 {text-align: center; color: blue; font-size: 4em;}
+      h2 {text-align: center; font-size: 3em;}
+      h3 {text-align: center; font-size: 3em;}
+      h4 {text-align: center; font-size: 3em;}
+      h5 {text-align: center; font-size: 1em; color: red;}
+      h6 {text-align: center; font-size: 1em; color: red;}
+      .block1 {
+            margin-left: 35%;
+            display: inline-block;
+      }
+      .block5 {
+            margin-left: 1%;
+            display: inline-block;
+      }
+      .block6 {
+            margin-left: 1%;
+            display: inline-block;
+      }
+      .block7 {
+            margin-left: 1%;
+            display: inline-block;
+      }
+      .block2 {
+            margin-left: 47%;
+      }
+      .block3 {
+            margin-left: 47%;
+      }
+      .block4 {
+            margin-left: 47%;
+      }
+</style>
+
+<h1>Gradient Boosting model</h1>
+<h2>Model information</h2>
+
+<div class="block1">
+      {{ wtf.quick_form(params_form) }}
+</div>
+
+<div class="block5">
+      {{ wtf.quick_form(datasetx_form) }}
+</div>
+
+<div class="block6">
+      {{ wtf.quick_form(datasety_form) }}
+</div>
+
+<div class="block7">
+      {{ wtf.quick_form(info_form) }}
+</div>
+
+<h3>Training model</h3>
+<h5>Model was trained successfully. Ready to make predictions!</h5>
+
+<div class="block2">
+      {{ wtf.quick_form(train_form) }}
+</div>
+
+<h4>Use fitted model to make predictions</h4>
+
+<div class="block3">
+      {{ wtf.quick_form(pred_form) }}
+</div>
+
+<h6>Prediction successful! To download result push button</h6>
+
+<div class="block4">
+      {{ wtf.quick_form(res_form) }}
+</div>
+
+{% endblock %}

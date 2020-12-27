@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    h1 {text-align: center; font-size: 4em;}
+    h2 {text-align: center; font-size: 3em;}
+
+    .ref1 {
+        display: inline-block;
+        margin-left: 42%;
+        margin-top: 3%;
+        border: 1px solid #333; /* Рамка */
+        display: inline-block;
+        padding: 5px 15px; /* Поля */
+        text-decoration: none; /* Убираем подчёркивание */
+        color: #000; /* Цвет текста */
+    }
+    .ref1:hover {
+        box-shadow: 0 0 5px rgba(0,0,0,0.3); /* Тень */
+        background: linear-gradient(to bottom, #fcfff4, #e9e9ce); /* Градиент */
+        color: #a00;
+    }
+
+    .ref2 {
+        display: inline-block;
+        margin-left: 4%;
+        margin-top: 3%;
+        border: 1px solid #333; /* Рамка */
+        display: inline-block;
+        padding: 5px 15px; /* Поля */
+        text-decoration: none; /* Убираем подчёркивание */
+        color: #000; /* Цвет текста */
+    }
+    .ref2:hover {
+        box-shadow: 0 0 5px rgba(0,0,0,0.3); /* Тень */
+        background: linear-gradient(to bottom, #fcfff4, #e9e9ce); /* Градиент */
+        color: #a00;
+    }
+</style>
+
+<h1>Привет!</h1>
+<h2>Тут можно обучать модели Random Forest и Gradient Boosting.</h2>
+
+<a href="{{ url_for('make_rf') }}" class="ref1">Use Random Forest</a>
+
+<a href="{{ url_for('make_gbm') }}" class="ref2">Use Gradient Boosting</a>
+
+{% endblock %}
