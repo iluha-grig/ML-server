@@ -147,10 +147,10 @@ def rf():
         return redirect(url_for('rf_params'))
     if request.method == 'POST' and datasetx_form.validate_on_submit() and \
             request.form['submit1'] == 'Download X_train':
-        return send_file('./rf_datasets/data.csv', as_attachment=True)
+        return send_file(os.path.join(rf_dataset_directory, 'data.csv'), as_attachment=True)
     if request.method == 'POST' and datasety_form.validate_on_submit() and \
             request.form['submit1'] == 'Download y_train':
-        return send_file('./rf_datasets/target.csv', as_attachment=True)
+        return send_file(os.path.join(rf_dataset_directory, 'target.csv'), as_attachment=True)
     if request.method == 'POST' and info_form.validate_on_submit() and \
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('rf_info'))
@@ -177,7 +177,7 @@ def rf():
         else:
             return redirect(url_for('rf', pred_before_fit=True, fitted=False, res=False))
     if request.method == 'POST' and res_form.validate_on_submit() and request.form['submit1'] == 'Download predictions':
-        return send_file('./rf_results/res.csv', as_attachment=True)
+        return send_file(os.path.join(rf_result_directory, 'res.csv'), as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
         if request.args['file_error'] == 'True':
@@ -219,10 +219,10 @@ def gbm():
         return redirect(url_for('gbm_params'))
     if request.method == 'POST' and datasetx_form.validate_on_submit() and \
             request.form['submit1'] == 'Download X_train':
-        return send_file('./gbm_datasets/data.csv', as_attachment=True)
+        return send_file(os.path.join(gbm_dataset_directory, 'data.csv'), as_attachment=True)
     if request.method == 'POST' and datasety_form.validate_on_submit() and \
             request.form['submit1'] == 'Download y_train':
-        return send_file('./gbm_datasets/target.csv', as_attachment=True)
+        return send_file(os.path.join(gbm_dataset_directory, 'target.csv'), as_attachment=True)
     if request.method == 'POST' and info_form.validate_on_submit() and \
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('gbm_info'))
@@ -249,7 +249,7 @@ def gbm():
         else:
             return redirect(url_for('gbm', pred_before_fit=True, fitted=False, res=False))
     if request.method == 'POST' and res_form.validate_on_submit() and request.form['submit1'] == 'Download predictions':
-        return send_file('./gbm_results/res.csv', as_attachment=True)
+        return send_file(os.path.join(gbm_result_directory, 'res.csv'), as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
         if request.args['file_error'] == 'True':

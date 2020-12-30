@@ -7,11 +7,15 @@ RUN chown -R root:root /root
 WORKDIR /root
 RUN pip3 install -r requirements.txt
 
-COPY server/ ./server/
+COPY templates/ ./templates/
+COPY ensembles.py .
+COPY ml_server.py .
+COPY run.py .
+COPY ./server/ ./server/
 
 ENV SECRET_KEY prod
 ENV FLASK_APP run.py
 
 RUN chown -R root:root /root
-RUN chmod +x server/flaskr/run.py
-CMD ["python3", "server/flaskr/run.py"]
+RUN chmod +x ./run.py
+CMD ["python3", "./run.py"]
