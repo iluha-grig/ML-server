@@ -1,10 +1,9 @@
 from flask_wtf import FlaskForm
 from flask_bootstrap import Bootstrap
 from flask import Flask, request, url_for
-from flask import render_template, redirect, send_from_directory, send_file
+from flask import render_template, redirect, send_file
 from wtforms.validators import DataRequired, Optional
-from flask_wtf.file import FileRequired, FileAllowed
-from flask_uploads import UploadSet
+from flask_wtf.file import FileRequired
 from wtforms import SubmitField, FileField, IntegerField, TextAreaField, FloatField
 from ensembles import RandomForestMSE, GradientBoostingMSE
 import pandas as pd
@@ -24,8 +23,8 @@ rf_result_directory = './server/flaskr/rf_results'
 gbm_result_directory = './server/flaskr/gbm_results'
 rf_dataset_directory = './server/flaskr/rf_datasets'
 gbm_dataset_directory = './server/flaskr/gbm_datasets'
-rf_info_directory = './server/flaskr/static/rf_info'
-gbm_info_directory = './server/flaskr/static/gbm_info'
+rf_info_directory = './static/rf_info'
+gbm_info_directory = './static/gbm_info'
 
 
 class RFMakeForm(FlaskForm):
@@ -68,19 +67,13 @@ class ModelTrainingInfo(FlaskForm):
 
 
 class TrainModelForm(FlaskForm):
-    file_path_data = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file'),
-                                                                     FileAllowed(UploadSet(extensions=('csv',)),
-                                                                                 message='Need .csv file')])
-    file_path_target = FileField('Path to .csv target file', validators=[FileRequired(message='Need valid file'),
-                                                                         FileAllowed(UploadSet(extensions=('csv',)),
-                                                                                     message='Need .csv file')])
+    file_path_data = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file')])
+    file_path_target = FileField('Path to .csv target file', validators=[FileRequired(message='Need valid file')])
     submit1 = SubmitField('Train model')
 
 
 class PredictForm(FlaskForm):
-    file_path = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file'),
-                                                                FileAllowed(UploadSet(extensions=('csv',)),
-                                                                            message='Need .csv file')])
+    file_path = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file')])
     submit1 = SubmitField('Get predictions')
 
 
@@ -155,6 +148,9 @@ def rf():
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('rf_info'))
     if request.method == 'POST' and train_form.validate_on_submit() and request.form['submit1'] == 'Train model':
+        if os.path.splitext(train_form.file_path_data.data.filename)[1] != '.csv' or \
+                os.path.splitext(train_form.file_path_target.data.filename)[1] != '.csv':
+            return redirect(url_for('rf', file_error=True, fitted=False, res=False))
         try:
             data = pd.read_csv(train_form.file_path_data.data, index_col='index')
             target = pd.read_csv(train_form.file_path_target.data, index_col='index')
@@ -166,6 +162,8 @@ def rf():
         return redirect(url_for('rf', fitted=True, res=False))
     if request.method == 'POST' and pred_form.validate_on_submit() and request.form['submit1'] == 'Get predictions':
         if rf_model.fitted:
+            if os.path.splitext(pred_form.file_path.data.filename)[1] != '.csv':
+                return redirect(url_for('rf', file_error=True, fitted=True, res=False))
             try:
                 data = pd.read_csv(pred_form.file_path.data, index_col='index')
             except Exception:
@@ -180,17 +178,17 @@ def rf():
         return send_file(os.path.join(rf_result_directory, 'res.csv'), as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
-        if request.args['file_error'] == 'True':
+        if request.args.get('file_error') == 'True':
             return render_template('from_form2_file_error.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form)
-        elif request.args['pred_before_fit'] == 'True':
+        elif request.args.get('pred_before_fit') == 'True':
             return render_template('from_form2_pred_before_fit.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form)
         else:
             return render_template('from_form2.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'False':
-        if request.args['file_error'] == 'True':
+        if request.args.get('file_error') == 'True':
             return render_template('from_form3_file_error.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
                                    info_form=info_form)
@@ -227,6 +225,9 @@ def gbm():
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('gbm_info'))
     if request.method == 'POST' and train_form.validate_on_submit() and request.form['submit1'] == 'Train model':
+        if os.path.splitext(train_form.file_path_data.data.filename)[1] != '.csv' or \
+                os.path.splitext(train_form.file_path_target.data.filename)[1] != '.csv':
+            return redirect(url_for('gbm', file_error=True, fitted=False, res=False))
         try:
             data = pd.read_csv(train_form.file_path_data.data, index_col='index')
             target = pd.read_csv(train_form.file_path_target.data, index_col='index')
@@ -238,6 +239,8 @@ def gbm():
         return redirect(url_for('gbm', fitted=True, res=False))
     if request.method == 'POST' and pred_form.validate_on_submit() and request.form['submit1'] == 'Get predictions':
         if gbm_model.fitted:
+            if os.path.splitext(pred_form.file_path.data.filename)[1] != '.csv':
+                return redirect(url_for('gbm', file_error=True, fitted=True, res=False))
             try:
                 data = pd.read_csv(pred_form.file_path.data, index_col='index')
             except Exception:
@@ -252,17 +255,17 @@ def gbm():
         return send_file(os.path.join(gbm_result_directory, 'res.csv'), as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
-        if request.args['file_error'] == 'True':
+        if request.args.get('file_error') == 'True':
             return render_template('from_form2_gbm_file_error.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form)
-        elif request.args['pred_before_fit'] == 'True':
+        elif request.args.get('pred_before_fit') == 'True':
             return render_template('from_form2_gbm_pred_before_fit.html', params_form=params_form,
                                    train_form=train_form, pred_form=pred_form)
         else:
             return render_template('from_form2_gbm.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'False':
-        if request.args['file_error'] == 'True':
+        if request.args.get('file_error') == 'True':
             return render_template('from_form3_gbm_file_error.html', params_form=params_form, train_form=train_form,
                                    pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
                                    info_form=info_form)
