@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+      h1 {text-align: center; color: blue; font-size: 4em;}
+      h2 {text-align: center; font-size: 3em;}
+      h3 {text-align: center; font-size: 3em;}
+      h4 {text-align: center; font-size: 3em;}
+      h5 {text-align: center; font-size: 1em; color: red;}
+      .block1 {
+            margin-left: 47%;
+      }
+      .block2 {
+            margin-left: 47%;
+      }
+      .block3 {
+            margin-left: 47%;
+      }
+</style>
+
+<h1>Random Forest model</h1>
+<h2>Model information</h2>
+
+<div class="block1">
+      {{ wtf.quick_form(params_form) }}
+</div>
+
+<h3>Training model</h3>
+
+<div class="block2">
+      {{ wtf.quick_form(train_form) }}
+</div>
+
+<h5>You need fit the model before make predictions.</h5>
+
+<h4>Use fitted model to make predictions</h4>
+
+<div class="block3">
+      {{ wtf.quick_form(pred_form) }}
+</div>
+
+{% endblock %}

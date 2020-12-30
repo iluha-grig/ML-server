@@ -3,6 +3,8 @@ from flask_bootstrap import Bootstrap
 from flask import Flask, request, url_for
 from flask import render_template, redirect, send_from_directory, send_file
 from wtforms.validators import DataRequired, Optional
+from flask_wtf.file import FileRequired, FileAllowed
+from flask_uploads import UploadSet
 from wtforms import SubmitField, FileField, IntegerField, TextAreaField, FloatField
 from ensembles import RandomForestMSE, GradientBoostingMSE
 import pandas as pd
@@ -66,13 +68,19 @@ class ModelTrainingInfo(FlaskForm):
 
 
 class TrainModelForm(FlaskForm):
-    file_path_data = FileField('Path to .csv data file', validators=[DataRequired()])
-    file_path_target = FileField('Path to .csv target file', validators=[DataRequired()])
+    file_path_data = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file'),
+                                                                     FileAllowed(UploadSet(extensions=('csv',)),
+                                                                                 message='Need .csv file')])
+    file_path_target = FileField('Path to .csv target file', validators=[FileRequired(message='Need valid file'),
+                                                                         FileAllowed(UploadSet(extensions=('csv',)),
+                                                                                     message='Need .csv file')])
     submit1 = SubmitField('Train model')
 
 
 class PredictForm(FlaskForm):
-    file_path = FileField('Path to .csv data file', validators=[DataRequired()])
+    file_path = FileField('Path to .csv data file', validators=[FileRequired(message='Need valid file'),
+                                                                FileAllowed(UploadSet(extensions=('csv',)),
+                                                                            message='Need .csv file')])
     submit1 = SubmitField('Get predictions')
 
 
@@ -147,29 +155,49 @@ def rf():
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('rf_info'))
     if request.method == 'POST' and train_form.validate_on_submit() and request.form['submit1'] == 'Train model':
-        data = pd.read_csv(train_form.file_path_data.data, index_col='index')
-        target = pd.read_csv(train_form.file_path_target.data, index_col='index')
+        try:
+            data = pd.read_csv(train_form.file_path_data.data, index_col='index')
+            target = pd.read_csv(train_form.file_path_target.data, index_col='index')
+        except Exception:
+            return redirect(url_for('rf', file_error=True, fitted=False, res=False))
         data.to_csv(os.path.join(rf_dataset_directory, 'data.csv'))
         target.to_csv(os.path.join(rf_dataset_directory, 'target.csv'))
         rf_model.fit(data.values, target.values.ravel())
         return redirect(url_for('rf', fitted=True, res=False))
     if request.method == 'POST' and pred_form.validate_on_submit() and request.form['submit1'] == 'Get predictions':
         if rf_model.fitted:
-            data = pd.read_csv(pred_form.file_path.data, index_col='index')
+            try:
+                data = pd.read_csv(pred_form.file_path.data, index_col='index')
+            except Exception:
+                return redirect(url_for('rf', file_error=True, fitted=True, res=False))
             res = rf_model.predict(data.values)
             res = pd.DataFrame(res, columns=['predictions'], index=data.index)
             res.to_csv(os.path.join(rf_result_directory, 'res.csv'))
             return redirect(url_for('rf', fitted=True, res=True))
         else:
-            return redirect(url_for('rf', fitted=False, res=False))
+            return redirect(url_for('rf', pred_before_fit=True, fitted=False, res=False))
     if request.method == 'POST' and res_form.validate_on_submit() and request.form['submit1'] == 'Download predictions':
         return send_file('./rf_results/res.csv', as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
-        return render_template('from_form2.html', params_form=params_form, train_form=train_form, pred_form=pred_form)
+        if request.args['file_error'] == 'True':
+            return render_template('from_form2_file_error.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form)
+        elif request.args['pred_before_fit'] == 'True':
+            return render_template('from_form2_pred_before_fit.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form)
+        else:
+            return render_template('from_form2.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'False':
-        return render_template('from_form3.html', params_form=params_form, train_form=train_form, pred_form=pred_form,
-                               datasetx_form=datasetx_form, datasety_form=datasety_form, info_form=info_form)
+        if request.args['file_error'] == 'True':
+            return render_template('from_form3_file_error.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
+                                   info_form=info_form)
+        else:
+            return render_template('from_form3.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
+                                   info_form=info_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'True':
         return render_template('from_form4.html', params_form=params_form, train_form=train_form, pred_form=pred_form,
                                res_form=res_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
@@ -199,31 +227,49 @@ def gbm():
             request.form['submit1'] == 'View training process info':
         return redirect(url_for('gbm_info'))
     if request.method == 'POST' and train_form.validate_on_submit() and request.form['submit1'] == 'Train model':
-        data = pd.read_csv(train_form.file_path_data.data, index_col='index')
-        target = pd.read_csv(train_form.file_path_target.data, index_col='index')
+        try:
+            data = pd.read_csv(train_form.file_path_data.data, index_col='index')
+            target = pd.read_csv(train_form.file_path_target.data, index_col='index')
+        except Exception:
+            return redirect(url_for('gbm', file_error=True, fitted=False, res=False))
         data.to_csv(os.path.join(gbm_dataset_directory, 'data.csv'))
         target.to_csv(os.path.join(gbm_dataset_directory, 'target.csv'))
         gbm_model.fit(data.values, target.values.ravel())
         return redirect(url_for('gbm', fitted=True, res=False))
     if request.method == 'POST' and pred_form.validate_on_submit() and request.form['submit1'] == 'Get predictions':
         if gbm_model.fitted:
-            data = pd.read_csv(pred_form.file_path.data, index_col='index')
+            try:
+                data = pd.read_csv(pred_form.file_path.data, index_col='index')
+            except Exception:
+                return redirect(url_for('gbm', file_error=True, fitted=True, res=False))
             res = gbm_model.predict(data.values)
             res = pd.DataFrame(res, columns=['predictions'], index=data.index)
             res.to_csv(os.path.join(gbm_result_directory, 'res.csv'))
             return redirect(url_for('gbm', fitted=True, res=True))
         else:
-            return redirect(url_for('gbm', fitted=False, res=False))
+            return redirect(url_for('gbm', pred_before_fit=True, fitted=False, res=False))
     if request.method == 'POST' and res_form.validate_on_submit() and request.form['submit1'] == 'Download predictions':
         return send_file('./gbm_results/res.csv', as_attachment=True)
 
     if request.method == 'GET' and request.args['fitted'] == 'False':
-        return render_template('from_form2_gbm.html', params_form=params_form, train_form=train_form,
-                               pred_form=pred_form)
+        if request.args['file_error'] == 'True':
+            return render_template('from_form2_gbm_file_error.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form)
+        elif request.args['pred_before_fit'] == 'True':
+            return render_template('from_form2_gbm_pred_before_fit.html', params_form=params_form,
+                                   train_form=train_form, pred_form=pred_form)
+        else:
+            return render_template('from_form2_gbm.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'False':
-        return render_template('from_form3_gbm.html', params_form=params_form, train_form=train_form,
-                               pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
-                               info_form=info_form)
+        if request.args['file_error'] == 'True':
+            return render_template('from_form3_gbm_file_error.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
+                                   info_form=info_form)
+        else:
+            return render_template('from_form3_gbm.html', params_form=params_form, train_form=train_form,
+                                   pred_form=pred_form, datasetx_form=datasetx_form, datasety_form=datasety_form,
+                                   info_form=info_form)
     if request.method == 'GET' and request.args['fitted'] == 'True' and request.args['res'] == 'True':
         return render_template('from_form4_gbm.html', params_form=params_form, train_form=train_form,
                                pred_form=pred_form, res_form=res_form, datasetx_form=datasetx_form,
